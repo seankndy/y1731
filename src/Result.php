@@ -4,10 +4,10 @@ namespace SeanKndy\Y1731;
 class Result
 {
     protected $monitor;
-    protected $delayNe, $delayFe;
-    protected $framelossNe, $framelossFe; // these are whole numbers that are 0.001 of a percent
-    protected $jitterNe, $jitterFe;
-    protected $timeouts, $errors;
+    protected $delayNe, $delayFe;         // UNIT: 0.01 of a microsecond  (ex. for 2.85594 milliseconds, this value would be 285594)
+    protected $framelossNe, $framelossFe; // UNIT: 0.001 of a percent     (ex. for 1% packet loss, this would be 100)
+    protected $jitterNe, $jitterFe;       // UNIT: 0.01 of a microsecond  (ex. for 0.0019 milliseconds of jitter, this value would be 190)
+    protected $timeouts, $errors;         // raw number of timeouts and errors, may always report 0 in some implementations
 
     public function __construct(Monitor $monitor) {
         $this->monitor = $monitor;
