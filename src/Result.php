@@ -18,7 +18,7 @@ class Result
     }
 
     public function getMonitor() {
-        return $this->monitorId;
+        return $this->monitor;
     }
 
     public function getDelayNe() {

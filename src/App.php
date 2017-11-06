@@ -19,6 +19,11 @@ class App extends \SeanKndy\Daemon\Daemon
 
     public function run() {
         $db = Database::getInstance();
+        if (!$db) {
+            $this->log(LOG_ERR, "Failed to get database PDO instance!");
+            \sleep(5);
+            return;
+        }
 
         //
         // fetch monitors that need polled
@@ -32,7 +37,7 @@ class App extends \SeanKndy\Daemon\Daemon
             $sth->execute();
         } catch (\PDOException $e) {
             $this->log(LOG_ERR, "Failed to fetch Y1731 monitors!");
-            sleep(5);
+            \sleep(5);
         }
         while ($row = $sth->fetch(\PDO::FETCH_ASSOC)) {
             $monitor = Monitor::create($row);
@@ -57,14 +62,28 @@ class App extends \SeanKndy\Daemon\Daemon
             // queue the actual poll task
             //
             $this->queueTask(function() use ($poller, $monitor) {
+                Database::close();
+                
                 try {
-                    $result = $poller->poll($monitor);
-                    if (!$result->getMonitor()) {
-                        $result->setMonitor($monitor);
+                    if (($result = $poller->poll($monitor)) instanceof Result) {
+                        if (!$result->getMonitor()) {
+                            $result->setMonitor($monitor);
+                        }
+                        $this->handleResult($result);
+                    } else {
+                        $this->log(LOG_ERR, "Monitor w/ ID " . $monitor->getId() . " returned non-Result object!");
                     }
-                    $this->handleResult($result);
                 } catch (\Exception $e) {
                     $this->log(LOG_ERR, "Failed to poll Y.1731 monitor (ID=" . $monitor->getId() . "): " . $e->getMessage());
+                }
+                
+                // update last polled time
+                $db = Database::getInstance();
+                try {
+                    $sth = $db->prepare("update y1731_monitors set last_polled = now() where id = ?");
+                    $sth->execute([$monitor->getId()]);
+                } catch (\Exception $e) {
+                    $this->log(LOG_ERR, "Failed to update last polled time for Y.1731 monitor (ID=" . $monitor->getId() . "): " . $e->getMessage());
                 }
             });
         }
@@ -75,15 +94,6 @@ class App extends \SeanKndy\Daemon\Daemon
     //
     private function handleResult(Result $result) {
         if (!$result) return;
-
-        // update last polled time
-        $db = Database::getInstance();
-        try {
-            $sth = $db->prepare("update y1731_monitors set last_polled = now() where id = ?");
-            $sth->execute([$result->getMonitor()->getId()]);
-        } catch (\Exception $e) {
-            $this->log(LOG_ERR, "Failed to update last polled time for Y.1731 monitor (ID=" . $monitor->getId() . "): " . $e->getMessage());
-        }
 
         foreach ($this->resultHandlers as $handler) {
             try {
@@ -99,8 +109,8 @@ class App extends \SeanKndy\Daemon\Daemon
     //
     private function getPollerForType($type) {
         if (isset($this->pollers[$type]) && \class_exists($class = $this->pollers[$type]['class'])) {
-            return call_user_func_array(
-                array(new ReflectionClass($class), 'newInstance'),
+            return \call_user_func_array(
+                array(new \ReflectionClass($class), 'newInstance'),
                 $this->pollers[$type]['args']
             );
         }

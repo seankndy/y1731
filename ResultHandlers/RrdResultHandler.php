@@ -12,14 +12,14 @@ class RrdResultHandler implements \SeanKndy\Y1731\ResultHandler
     }
 
     public function process(SeanKndy\Y1731\Result $result) {
-        $rrdFileTpl = $this->rrdDir . "/" . $result->getMonitorId() . "_%s.rrd";
+        $rrdFileTpl = $this->rrdDir . "/" . $result->getMonitor()->getId() . "_%s.rrd";
         foreach (self::$RRD_DS as $ds) {
             $rrdFile = str_replace('%s', $ds, $rrdFileTpl);
             if (!file_exists($rrdFile)) {
                 $this->createRrd($rrdFile, $result->getMonitor()->getInterval(), $ds);
             }
 
-            $getMethod = 'get' = . ucfirst($ds);
+            $getMethod = 'get' . ucfirst($ds);
             if (method_exists($result, $getMethod)) {
                 $this->updateRrd($rrdFile, $result->$getMethod());
             }
@@ -27,7 +27,7 @@ class RrdResultHandler implements \SeanKndy\Y1731\ResultHandler
     }
 
     private function updateRrd($rrdFile, $val) {
-        $cmd = $this->rrdToolBin . " update $rrdFile " . time() . ":$val");
+        $cmd = $this->rrdToolBin . " update $rrdFile " . time() . ":$val";
         system($cmd, $retval);
     }
 

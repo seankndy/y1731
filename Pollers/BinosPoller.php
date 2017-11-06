@@ -1,5 +1,5 @@
 <?php
-class BinosPoller implements SeanKndy\Y1731\Poller
+class BinosPoller implements \SeanKndy\Y1731\Poller
 {
     protected $mibDir;
 
@@ -7,22 +7,24 @@ class BinosPoller implements SeanKndy\Y1731\Poller
         $this->mibDir = $mibDir;
     }
 
-    public function poll(Monitor $monitor) {
+    public function poll(\SeanKndy\Y1731\Monitor $monitor) {
         $attribs = $monitor->getAttributes();
 
         foreach (glob($this->mibDir . '/*.mib') as $mib) {
             snmp_read_mib($mib);
         }
         // little bit of a hack to get the latest index, works for now
-        $oid = "PRVT-SAA-MIB::prvtSaaY1731TestResultDelayNE.\"{$attribs['saa_owner_name']}\".\"{$attribs['saa_name']}\"";
+        $oid = "PRVT-SAA-MIB::prvtSaaY1731TestResultDelayNE.\"{$attribs->saa_owner_name}\".\"{$attribs->saa_name}\"";
         if (!($delay_ne_walk = snmp2_real_walk($monitor->getDeviceIp(), $monitor->getDeviceSnmpCommunity(), $oid))) {
-            return false;
+            throw new \Exception("Failed to walk " . $monitor->getDeviceIp() . " w/ OID $oid");
         }
         $index = null;
-        if (preg_match('/\.([0-9]+)$/', array_pop(array_keys($delay_ne_walk)), $m))
+        $keys = array_keys($delay_ne_walk);
+        $key = array_pop($keys);
+        if (preg_match('/\.([0-9]+)$/', $key, $m))
             $index = $m[1];
         else
-            return false;
+            throw new \Exception("Could not parse snmp output to determine latest index");
 
         // verify we haven't already pulled this data index
         /*
@@ -32,16 +34,16 @@ class BinosPoller implements SeanKndy\Y1731\Poller
         */
 
         $oids = array(
-            'delayNe'	  => "PRVT-SAA-MIB::prvtSaaY1731TestResultDelayNE.\"{$attribs['saa_owner_name']}\".\"{$attribs['saa_name']}\".$index",
-            'delayFe'	  => "PRVT-SAA-MIB::prvtSaaY1731TestResultDelayFE.\"{$attribs['saa_owner_name']}\".\"{$attribs['saa_name']}\".$index",
-            'jitterNe'    => "PRVT-SAA-MIB::prvtSaaY1731TestResultJitterNE.\"{$attribs['saa_owner_name']}\".\"{$attribs['saa_name']}\".$index",
-            'jitterFe'    => "PRVT-SAA-MIB::prvtSaaY1731TestResultJitterFE.\"{$attribs['saa_owner_name']}\".\"{$attribs['saa_name']}\".$index",
-            'framelossNe' => "PRVT-SAA-MIB::prvtSaaY1731TestResultFrameLossNE.\"{$attribs['saa_owner_name']}\".\"{$attribs['saa_name']}\".$index",
-            'framelossFe' => "PRVT-SAA-MIB::prvtSaaY1731TestResultFrameLossFE.\"{$attribs['saa_owner_name']}\".\"{$attribs['saa_name']}\".$index",
-            'errors'      => "PRVT-SAA-MIB::prvtSaaY1731TestResultNoErrors.\"{$attribs['saa_owner_name']}\".\"{$attribs['saa_name']}\".$index",
-          	'timeouts'    => "PRVT-SAA-MIB::prvtSaaY1731TestResultNoTimeouts.\"{$attribs['saa_owner_name']}\".\"{$attribs['saa_name']}\".$index"
+            'delayNe'	  => "PRVT-SAA-MIB::prvtSaaY1731TestResultDelayNE.\"{$attribs->saa_owner_name}\".\"{$attribs->saa_name}\".$index",
+            'delayFe'	  => "PRVT-SAA-MIB::prvtSaaY1731TestResultDelayFE.\"{$attribs->saa_owner_name}\".\"{$attribs->saa_name}\".$index",
+            'jitterNe'    => "PRVT-SAA-MIB::prvtSaaY1731TestResultJitterNE.\"{$attribs->saa_owner_name}\".\"{$attribs->saa_name}\".$index",
+            'jitterFe'    => "PRVT-SAA-MIB::prvtSaaY1731TestResultJitterFE.\"{$attribs->saa_owner_name}\".\"{$attribs->saa_name}\".$index",
+            'framelossNe' => "PRVT-SAA-MIB::prvtSaaY1731TestResultFrameLossNE.\"{$attribs->saa_owner_name}\".\"{$attribs->saa_name}\".$index",
+            'framelossFe' => "PRVT-SAA-MIB::prvtSaaY1731TestResultFrameLossFE.\"{$attribs->saa_owner_name}\".\"{$attribs->saa_name}\".$index",
+            'errors'      => "PRVT-SAA-MIB::prvtSaaY1731TestResultNoErrors.\"{$attribs->saa_owner_name}\".\"{$attribs->saa_name}\".$index",
+          	'timeouts'    => "PRVT-SAA-MIB::prvtSaaY1731TestResultNoTimeouts.\"{$attribs->saa_owner_name}\".\"{$attribs->saa_name}\".$index"
         );
-        $result = new Result($monitor);
+        $result = new \SeanKndy\Y1731\Result($monitor);
         foreach ($oids as $type => $oid) {
             $setMethod = 'set' . ucfirst($type);
             if (!method_exists($result, $setMethod)) continue;

@@ -24,7 +24,9 @@ class Database
 
     public static function getInstance() {
         if (self::$db == null) {
-            self::init();
+            if (!self::init()) {
+                return null;
+            }
         }
         try {
             $oldErrlevel = error_reporting(0);
@@ -34,5 +36,9 @@ class Database
         }
         error_reporting($oldErrlevel);
         return self::$db;
+    }
+    
+    public static function close() {
+        self::$db = null;
     }
 }

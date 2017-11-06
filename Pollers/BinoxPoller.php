@@ -1,5 +1,5 @@
 <?php
-class BinoxPoller implements SeanKndy\Y1731\Poller
+class BinoxPoller implements \SeanKndy\Y1731\Poller
 {
     protected $mibDir;
 
@@ -7,18 +7,21 @@ class BinoxPoller implements SeanKndy\Y1731\Poller
         $this->mibDir = $mibDir;
     }
 
-    public function poll(Monitor $monitor) {
-        $attribs = $montior->getAttributes();
+    public function poll(\SeanKndy\Y1731\Monitor $monitor) {
+        $attribs = $monitor->getAttributes();
         // little bit of a hack to get the latest index, works for now
-        $oid = "PRVT-SAA-MIB::prvtSaaTestY1731ResultDelayNearEnd.\"{$attribs['saa_name']}\".\"{$attribs['saa_owner_name']}\"";
+        $oid = "PRVT-SAA-MIB::prvtSaaTestY1731ResultDelayNearEnd.\"{$attribs->saa_name}\".\"{$attribs->saa_owner_name}\"";
         if (!($delay_ne_walk = $this->snmpWalk($monitor->getDeviceIp(), $monitor->getDeviceSnmpCommunity(), $oid))) {
-            return false;
+            throw new \Exception("Failed to walk " . $monitor->getDeviceIp() . " w/ OID $oid");
         }
+        print_r($delay_ne_walk);
         $index = null;
-        if (preg_match('/\.([0-9]+)$/', array_pop(array_keys($delay_ne_walk)), $m))
+        $keys = array_keys($delay_ne_walk);
+        $key = array_pop($keys);
+        if (preg_match('/\.([0-9]+)$/', $key, $m))
             $index = $m[1];
         else
-            return false;
+            throw new \Exception("Could not parse snmp output to determine latest index");
 
         // verify we haven't already pulled this data index
         /*
@@ -28,16 +31,16 @@ class BinoxPoller implements SeanKndy\Y1731\Poller
         */
 
         $oids = array(
-            'delayNe'	  => "PRVT-SAA-MIB::prvtSaaTestY1731ResultDelayNearEnd.\"{$attribs['saa_name']}\".\"{$attribs['saa_owner_name']}\".$index",
-            'delayFe'	  => "PRVT-SAA-MIB::prvtSaaTestY1731ResultDelayFarEnd.\"{$attribs['saa_name']}\".\"{$attribs['saa_owner_name']}\".$index",
-            'jitterNe'    => "PRVT-SAA-MIB::prvtSaaTestY1731ResultJitterNearEnd.\"{$attribs['saa_name']}\".\"{$attribs['saa_owner_name']}\".$index",
-            'jitterFe'    => "PRVT-SAA-MIB::prvtSaaTestY1731ResultJitterFarEnd.\"{$attribs['saa_name']}\".\"{$attribs['saa_owner_name']}\".$index",
-            'framelossNe' => "PRVT-SAA-MIB::prvtSaaTestY1731ResultFrameLossNearEnd.\"{$attribs['saa_name']}\".\"{$attribs['saa_owner_name']}\".$index",
-            'framelossFe' => "PRVT-SAA-MIB::prvtSaaTestY1731ResultFrameLossFarEnd.\"{$attribs['saa_name']}\".\"{$attribs['saa_owner_name']}\".$index",
-            'errors'      => "PRVT-SAA-MIB::prvtSaaTestY1731ResultErrors.\"{$attribs['saa_name']}\".\"{$attribs['saa_owner_name']}\".$index",
-            'timeouts'	  => "PRVT-SAA-MIB::prvtSaaTestY1731ResultTimeouts.\"{$attribs['saa_name']}\".\"{$attribs['saa_owner_name']}\".$index"
+            'delayNe'	  => "PRVT-SAA-MIB::prvtSaaTestY1731ResultDelayNearEnd.\"{$attribs->saa_name}\".\"{$attribs->saa_owner_name}\".$index",
+            'delayFe'	  => "PRVT-SAA-MIB::prvtSaaTestY1731ResultDelayFarEnd.\"{$attribs->saa_name}\".\"{$attribs->saa_owner_name}\".$index",
+            'jitterNe'    => "PRVT-SAA-MIB::prvtSaaTestY1731ResultJitterNearEnd.\"{$attribs->saa_name}\".\"{$attribs->saa_owner_name}\".$index",
+            'jitterFe'    => "PRVT-SAA-MIB::prvtSaaTestY1731ResultJitterFarEnd.\"{$attribs->saa_name}\".\"{$attribs->saa_owner_name}\".$index",
+            'framelossNe' => "PRVT-SAA-MIB::prvtSaaTestY1731ResultFrameLossNearEnd.\"{$attribs->saa_name}\".\"{$attribs->saa_owner_name}\".$index",
+            'framelossFe' => "PRVT-SAA-MIB::prvtSaaTestY1731ResultFrameLossFarEnd.\"{$attribs->saa_name}\".\"{$attribs->saa_owner_name}\".$index",
+            'errors'      => "PRVT-SAA-MIB::prvtSaaTestY1731ResultErrors.\"{$attribs->saa_name}\".\"{$attribs->saa_owner_name}\".$index",
+            'timeouts'	  => "PRVT-SAA-MIB::prvtSaaTestY1731ResultTimeouts.\"{$attribs->saa_name}\".\"{$attribs->saa_owner_name}\".$index"
         );
-        $result = new Result($monitor);
+        $result = new \SeanKndy\Y1731\Result($monitor);
         foreach ($oids as $type => $oid) {
             $setMethod = 'set' . ucfirst($type);
             if (!method_exists($result, $setMethod)) continue;

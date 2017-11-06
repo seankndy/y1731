@@ -21,7 +21,7 @@ class DbResultHandler implements \SeanKndy\Y1731\ResultHandler
             $vars = [];
             $sql = "update y1731_monitor_data set ";
             foreach (self::$RESULT_ATTRS as $key => $dbPrefix) {
-                $getMethod = 'get' . ucifrst($key);
+                $getMethod = 'get' . ucfirst($key);
 
                 // check min
                 $minVar = $dbPrefix . '_min';
@@ -52,7 +52,7 @@ class DbResultHandler implements \SeanKndy\Y1731\ResultHandler
             $sql .= "samples = samples+1 where id = ?";
             $vars[] = $row['id'];
         } else {
-            $sql = "insert into y1731_monitor_data (y1731_monitor_id, delay_ne_avg, delay_ne_min, delay_ne_max, delay_fe_avg, delay_fe_min, delay_fe_max, jitter_ne_avg, jitter_ne_min, jitter_ne_max, jitter_fe_avg, jitter_fe_min, jitter_fe_max, frameloss_ne_avg, frameloss_ne_min, frameloss_ne_max, frameloss_fe_avg, frameloss_fe_min, frameloss_fe_max, uat, date, samples) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, curdate(), 1)"
+            $sql = "insert into y1731_monitor_data (y1731_monitor_id, delay_ne_avg, delay_ne_min, delay_ne_max, delay_fe_avg, delay_fe_min, delay_fe_max, jitter_ne_avg, jitter_ne_min, jitter_ne_max, jitter_fe_avg, jitter_fe_min, jitter_fe_max, frameloss_ne_avg, frameloss_ne_min, frameloss_ne_max, frameloss_fe_avg, frameloss_fe_min, frameloss_fe_max, uat, date, samples) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, curdate(), 1)";
             $vars = [
                 $result->getMonitor()->getId(),
                 $result->getDelayNe(),

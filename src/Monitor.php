@@ -1,9 +1,10 @@
-<<?php
+<?php
 namespace SeanKndy\Y1731;
 
 class Monitor
 {
     protected $id;
+    protected $type;
     protected $deviceIp;
     protected $deviceSnmpCommunity;
     protected $attributes;
@@ -32,6 +33,14 @@ class Monitor
 
     public function setId($id) {
         $this->id = $id;
+    }
+
+    public function getType() {
+        return $this->type;
+    }
+    
+    public function setType($type) {
+        $this->type = $type;
     }
 
     public function getDeviceIp() {
