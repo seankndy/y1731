@@ -61,7 +61,7 @@ class BinoxPoller implements \SeanKndy\Y1731\Poller
     }
 
     private function snmpWalk($ip, $community, $oid) {
-        exec("snmpwalk -M '{$this->mibDir}' -v2c '$ip' -c '$community' '$oid'", $output);
+        exec("snmpwalk -M '{$this->mibDir}' -v2c '$ip' -c '$community' '$oid' 2>/dev/null", $output);
         $data = [];
         foreach ($output as $line) {
             list($key,$value) = preg_split('/\s*=\s*/', $line);
@@ -72,7 +72,7 @@ class BinoxPoller implements \SeanKndy\Y1731\Poller
 
     private function snmpGet($ip, $community, $oid)
     {
-        exec("snmpget -M '{$this->mibDir}' -v2c '$ip' -c '$community' '$oid'", $output);
+        exec("snmpget -M '{$this->mibDir}' -v2c '$ip' -c '$community' '$oid' 2>/dev/null", $output);
         foreach ($output as $line) {
             list($key,$value) = preg_split('/\s*=\s*/', $line);
             return $value;
