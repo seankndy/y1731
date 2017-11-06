@@ -39,7 +39,7 @@ class DbResultHandler implements \SeanKndy\Y1731\ResultHandler
 
                 // calculate new average
                 $curAvg = $row[$dbPrefix . '_avg'];
-                $newAvg = $curAvg + ($result->$getMethod() - $curAvg) / $row['samples'];
+                $newAvg = $curAvg + ($result->$getMethod() - $curAvg) / ($row['samples']+1);
                 //$newAvg = $row[$dbPrefix . '_avg'] * ($row['samples']-1)/$row['samples'] + $result->$getMethod() / $row['samples'];
                 $sql .= "{$dbPrefix}_avg = ?, ";
                 $vars[] = $newAvg;
@@ -47,7 +47,7 @@ class DbResultHandler implements \SeanKndy\Y1731\ResultHandler
 
             // calculate unavailable time
             $sql .= "uat = ?, ";
-            $vals[] = $row['uat'] + $result->calculateUat();
+            $vars[] = $row['uat'] + $result->calculateUat();
 
             $sql .= "samples = samples+1 where id = ?";
             $vars[] = $row['id'];

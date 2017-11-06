@@ -12,6 +12,6 @@ $app->registerPoller('binos', '\\BinosPoller', array('/www/vcn.com/circuits/telc
 $app->addResultHandler(new RrdResultHandler('/mnt/circuitsmngr/rrd/y1731'));
 $app->addResultHandler(new DbResultHandler());
 
-$app->setDaemonize(false);
+$app->setDaemonize(true);
 
 $app->start();
