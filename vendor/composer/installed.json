@@ -1,0 +1,44 @@
+[
+    {
+        "name": "seankndy/daemon",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/seankndy/Daemon.git",
+            "reference": "243c6f442d5f981eb812c8f4d6b84bf87f61e4af"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/seankndy/Daemon/zipball/243c6f442d5f981eb812c8f4d6b84bf87f61e4af",
+            "reference": "243c6f442d5f981eb812c8f4d6b84bf87f61e4af",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4.0"
+        },
+        "time": "2017-05-18T22:19:05+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "SeanKndy\\Daemon\\": "src/"
+            }
+        },
+        "authors": [
+            {
+                "name": "Sean Kennedy",
+                "email": "sean@kndy.net"
+            }
+        ],
+        "description": "Simple PHP daemon helper",
+        "keywords": [
+            "daemon",
+            "fork"
+        ],
+        "support": {
+            "source": "https://github.com/seankndy/Daemon/tree/master",
+            "issues": "https://github.com/seankndy/Daemon/issues"
+        }
+    }
+]

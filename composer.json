@@ -1,0 +1,15 @@
+{
+    "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/seankndy/Daemon.git"
+        }
+    ],
+    "require": {
+        "seankndy/Daemon": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {"SeanKndy\\Y1731\\": "src/"}
+    }
+}

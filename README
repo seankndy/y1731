@@ -1,0 +1,3 @@
+Daemon written in PHP to poll Y.1731 data.  Currently only Telco BiNOS and BiNOX devices are tested/supported, but support for other vendors should be easily implementable.
+
+This source integrates with 'circuitsmngr' database, but it would be very simple to tweak the queries to source the Y.1731 monitor data from any DB.
