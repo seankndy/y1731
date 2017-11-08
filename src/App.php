@@ -6,6 +6,20 @@ class App extends \SeanKndy\Daemon\Daemon
     private $resultHandlers = [];
     private $pollers = [];
 
+    public function __construct($name, $maxChildren = 100, $quietTime = 1000000, $syslog = true) {
+        parent::__construct($name, $maxChildren, $quietTime, $syslog);
+        
+        if ($db = Database::getInstance()) {
+            try {
+                // set 'polling' flag to 0 in case some monitor was stuck on 1 when the daemon died
+                $usth = $db->prepare('update y1731_monitors set polling = 0 where enabled = 1');
+                $usth->execute();
+            } catch (\PDOException $e) {
+                $this->log(LOG_ERR, "Failed to run query to reset polling flags.");
+            }
+        }
+    }
+
     public function addResultHandler(ResultHandler $handler) {
         $this->resultHandlers[] = $handler;
     }
@@ -32,11 +46,15 @@ class App extends \SeanKndy\Daemon\Daemon
             $sth = $db->prepare('select m.id, m.type, m.attributes, m.interval, m.latency_threshold as latencyThreshold, ' .
                 'm.jitter_threshold as jitterThreshold, m.frameloss_threshold as framelossThreshold, m.last_polled as lastPolled, ' .
                 'm.added, devices.ip as deviceIp, devices.snmp_read_community as deviceSnmpCommunity from y1731_monitors as m ' .
-                'left join devices on devices.id = m.device_id where (m.last_polled is null or ' .
+                'left join devices on devices.id = m.device_id where enabled = 1 and polling = 0 and (m.last_polled is null or ' .
                 'timestampdiff(second, m.last_polled, now()) > `interval`) order by m.last_polled asc');
             $sth->execute();
+            
+            // set 'polling' flag so we don't re-poll the same monitors before they finish
+            $usth = $db->prepare('update y1731_monitors set polling = 1 where (last_polled is null or timestampdiff(second, last_polled, now()) > `interval`) and enabled = 1');
+            $usth->execute();
         } catch (\PDOException $e) {
-            $this->log(LOG_ERR, "Failed to fetch Y1731 monitors!");
+            $this->log(LOG_ERR, "Failed to fetch Y1731 monitors: " . $e->getMessage());
             \sleep(5);
         }
         while ($row = $sth->fetch(\PDO::FETCH_ASSOC)) {
@@ -80,7 +98,7 @@ class App extends \SeanKndy\Daemon\Daemon
                 // update last polled time
                 $db = Database::getInstance();
                 try {
-                    $sth = $db->prepare("update y1731_monitors set last_polled = now() where id = ?");
+                    $sth = $db->prepare("update y1731_monitors set last_polled = now(), polling = 0 where id = ?");
                     $sth->execute([$monitor->getId()]);
                 } catch (\Exception $e) {
                     $this->log(LOG_ERR, "Failed to update last polled time for Y.1731 monitor (ID=" . $monitor->getId() . "): " . $e->getMessage());
