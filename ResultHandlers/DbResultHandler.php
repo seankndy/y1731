@@ -83,6 +83,33 @@ class DbResultHandler implements \SeanKndy\Y1731\ResultHandler
             throw new \Exception("Failed to update/insert Y1731 monitor data: " . $e->getMessage());
         }
 
+        // if this result violated any threshold, store it
+        $this->storeViolations($result);
+
         // GC?
+    }
+
+    protected function storeViolations(SeanKndy\Y1731\Result $result) {
+        $db = \SeanKndy\Y1731\Database::getInstance();
+
+        $tests = [
+            [$result->getDelayNe(), $result->getMonitor()->getLatencyThreshold(), 'Delay Near End'],
+            [$result->getDelayFe(), $result->getMonitor()->getLatencyThreshold(), 'Delay Far End'],
+            [$result->getJitterNe(), $result->getMonitor()->getJitterThreshold(), 'Jitter Near End'],
+            [$result->getJitterFe(), $result->getMonitor()->getJitterThreshold(), 'Jitter Far End'],
+            [$result->getFramelossNe()*0.001, $result->getMonitor()->getFramelossThreshold(), 'Frameloss Near End'],
+            [$result->getFramelossFe()*0.001, $result->getMonitor()->getFramelossThreshold(), 'Frameloss Far End'],
+        ];
+        foreach ($tests as $test) {
+            if ($test[0] > $test[1]) {
+                try {
+                    $sql = "insert into y1731_violations (y1731_monitor_id, violation_datetime, measurement, threshold, violation) values(?, now(), ?, ?, ?)";
+                    $sth = $db->prepare($sql);
+                    $sth->execute([$result->getMonitor()->getId(), $test[0], $test[1], $test[2]]);
+                } catch (\PDOException $e) {
+                    throw new \Exception("Failed to insert Y1731 violation data: " . $e->getMessage());
+                }
+            }
+        }
     }
 }
