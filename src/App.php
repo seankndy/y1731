@@ -45,8 +45,8 @@ class App extends \SeanKndy\Daemon\Daemon
         try {
             $sth = $db->prepare('select m.id, m.type, m.attributes, m.interval, m.latency_threshold as latencyThreshold, ' .
                 'm.jitter_threshold as jitterThreshold, m.frameloss_threshold as framelossThreshold, m.last_polled as lastPolled, ' .
-                'm.added, devices.ip as deviceIp, devices.snmp_read_community as deviceSnmpCommunity from y1731_monitors as m ' .
-                'left join devices on devices.id = m.device_id where enabled = 1 and polling = 0 and (m.last_polled is null or ' .
+                'm.added, m.expire_data_days as expireDataDays, devices.ip as deviceIp, devices.snmp_read_community as deviceSnmpCommunity ' .
+                'from y1731_monitors as m left join devices on devices.id = m.device_id where enabled = 1 and polling = 0 and (m.last_polled is null or ' .
                 'timestampdiff(second, m.last_polled, now()) > `interval`) order by m.last_polled asc');
             $sth->execute();
 

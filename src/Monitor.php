@@ -13,6 +13,7 @@ class Monitor
     protected $jitterThreshold;
     protected $framelossThreshold;
     protected $lastPolled;
+    protected $expireDataDays;
     protected $added;
     protected $enabled;
 
@@ -38,7 +39,7 @@ class Monitor
     public function getType() {
         return $this->type;
     }
-    
+
     public function setType($type) {
         $this->type = $type;
     }
@@ -108,6 +109,14 @@ class Monitor
 
     public function setLastPolled($lastPolled) {
         $this->lastPolled = $lastPolled;
+    }
+
+    public function getExpireDataDays() {
+        return $this->expireDataDays;
+    }
+
+    public function setExpireDataDays($expireDataDays) {
+        $this->expireDataDays = $expireDataDays;
     }
 
     public function getAdded() {

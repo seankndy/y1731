@@ -86,7 +86,16 @@ class DbResultHandler implements \SeanKndy\Y1731\ResultHandler
         // if this result violated any threshold, store it
         $this->storeViolations($result);
 
-        // GC?
+        // GC around once every 10 executions
+        if ($result->getMonitor()->getExpireDataDays() > 0 && rand(1, 100) % 10 == 0) {
+            $sql = "delete from y1731_violations where y1731_monitor_id = ? and timestampdiff(day, violation_datetime, now()) > ?";
+            $sth = $db->prepare($sql);
+            $sth->execute([$result->getMonitor()->getId(), $result->getMonitor()->getExpireDataDays(]);
+
+            $sql = "delete from y1731_monitor_data where y1731_monitor_id = ? and timestampdiff(day, `date`, now()) > ?";
+            $sth = $db->prepare($sql);
+            $sth->execute([$result->getMonitor()->getId(), $result->getMonitor()->getExpireDataDays(]);
+        }
     }
 
     protected function storeViolations(SeanKndy\Y1731\Result $result) {
