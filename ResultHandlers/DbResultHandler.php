@@ -90,11 +90,11 @@ class DbResultHandler implements \SeanKndy\Y1731\ResultHandler
         if ($result->getMonitor()->getExpireDataDays() > 0 && rand(1, 100) % 10 == 0) {
             $sql = "delete from y1731_violations where y1731_monitor_id = ? and timestampdiff(day, violation_datetime, now()) > ?";
             $sth = $db->prepare($sql);
-            $sth->execute([$result->getMonitor()->getId(), $result->getMonitor()->getExpireDataDays(]);
+            $sth->execute([$result->getMonitor()->getId(), $result->getMonitor()->getExpireDataDays()]);
 
             $sql = "delete from y1731_monitor_data where y1731_monitor_id = ? and timestampdiff(day, `date`, now()) > ?";
             $sth = $db->prepare($sql);
-            $sth->execute([$result->getMonitor()->getId(), $result->getMonitor()->getExpireDataDays(]);
+            $sth->execute([$result->getMonitor()->getId(), $result->getMonitor()->getExpireDataDays()]);
         }
     }
 
