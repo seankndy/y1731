@@ -5,7 +5,7 @@ class Result
 {
     protected $monitor;
     protected $delayNe, $delayFe;         // UNIT: 0.01 of a microsecond  (ex. for 2.85594 milliseconds, this value would be 285594)
-    protected $framelossNe, $framelossFe; // UNIT: 0.001 of a percent     (ex. for 1% packet loss, this would be 100)
+    protected $framelossNe, $framelossFe; // UNIT: 0.001 of a percent     (ex. for 1% packet loss, this would be 1000, .1% would be 100)
     protected $jitterNe, $jitterFe;       // UNIT: 0.01 of a microsecond  (ex. for 0.0019 milliseconds of jitter, this value would be 190)
     protected $timeouts, $errors;         // raw number of timeouts and errors, may always report 0 in some implementations
 

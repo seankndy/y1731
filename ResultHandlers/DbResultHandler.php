@@ -25,7 +25,7 @@ class DbResultHandler implements \SeanKndy\Y1731\ResultHandler
 
                 // check min
                 $minVar = $dbPrefix . '_min';
-                if ($result->$getMethod() < $row[$minVar]) {
+                if ($result->$getMethod() != 0 && $result->$getMethod() < $row[$minVar]) {
                     $sql .= "$minVar = ?, ";
                     $vars[] = $result->$getMethod();
                 }
@@ -102,12 +102,12 @@ class DbResultHandler implements \SeanKndy\Y1731\ResultHandler
         $db = \SeanKndy\Y1731\Database::getInstance();
 
         $tests = [
-            [$result->getDelayNe(), $result->getMonitor()->getLatencyThreshold(), 'Delay Near End'],
-            [$result->getDelayFe(), $result->getMonitor()->getLatencyThreshold(), 'Delay Far End'],
-            [$result->getJitterNe(), $result->getMonitor()->getJitterThreshold(), 'Jitter Near End'],
-            [$result->getJitterFe(), $result->getMonitor()->getJitterThreshold(), 'Jitter Far End'],
-            [$result->getFramelossNe()*0.001, $result->getMonitor()->getFramelossThreshold(), 'Frameloss Near End'],
-            [$result->getFramelossFe()*0.001, $result->getMonitor()->getFramelossThreshold(), 'Frameloss Far End'],
+            [$result->getDelayNe()*.01, $result->getMonitor()->getLatencyThreshold(), 'Delay Near End'],
+            [$result->getDelayFe()*.01, $result->getMonitor()->getLatencyThreshold(), 'Delay Far End'],
+            [$result->getJitterNe()*.01, $result->getMonitor()->getJitterThreshold(), 'Jitter Near End'],
+            [$result->getJitterFe()*.01, $result->getMonitor()->getJitterThreshold(), 'Jitter Far End'],
+            [$result->getFramelossNe(), $result->getMonitor()->getFramelossThreshold(), 'Frameloss Near End'],
+            [$result->getFramelossFe(), $result->getMonitor()->getFramelossThreshold(), 'Frameloss Far End'],
         ];
         foreach ($tests as $test) {
             if ($test[0] > $test[1]) {

@@ -14,14 +14,18 @@ class BinoxPoller implements \SeanKndy\Y1731\Poller
         if (!($delay_ne_walk = $this->snmpWalk($monitor->getDeviceIp(), $monitor->getDeviceSnmpCommunity(), $oid))) {
             throw new \Exception("Failed to walk " . $monitor->getDeviceIp() . " w/ OID $oid");
         }
-        print_r($delay_ne_walk);
+        //print_r($delay_ne_walk);
         $index = null;
-        $keys = array_keys($delay_ne_walk);
-        $key = array_pop($keys);
-        if (preg_match('/\.([0-9]+)$/', $key, $m))
-            $index = $m[1];
-        else
+        if ($delay_ne_walk) {
+            $keys = array_keys($delay_ne_walk);
+            $key = array_pop($keys);
+            if (preg_match('/\.([0-9]+)$/', $key, $m))
+                $index = $m[1];
+        }
+        if (!$index)
             throw new \Exception("Could not parse snmp output to determine latest index");
+
+        //echo "$index\n";
 
         // verify we haven't already pulled this data index
         /*
@@ -45,7 +49,7 @@ class BinoxPoller implements \SeanKndy\Y1731\Poller
             $setMethod = 'set' . ucfirst($type);
             if (!method_exists($result, $setMethod)) continue;
 
-            if (($val = $ths->snmpGet($monitor->getDeviceIp(), $monitor->getDeviceSnmpCommunity(), $oid)) !== false) {
+            if (($val = $this->snmpGet($monitor->getDeviceIp(), $monitor->getDeviceSnmpCommunity(), $oid)) !== false) {
                 $result->$setMethod(preg_replace('/^Gauge(32|64):\s*/', '', $val));
             } else {
                 $result->$setMethod(-1);
@@ -61,6 +65,7 @@ class BinoxPoller implements \SeanKndy\Y1731\Poller
     }
 
     private function snmpWalk($ip, $community, $oid) {
+        //echo "snmpwalk -M '{$this->mibDir}' -v2c '$ip' -c '$community' '$oid'\n";
         exec("snmpwalk -M '{$this->mibDir}' -v2c '$ip' -c '$community' '$oid' 2>/dev/null", $output);
         $data = [];
         foreach ($output as $line) {
